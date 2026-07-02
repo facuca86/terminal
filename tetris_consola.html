@@ -266,6 +266,7 @@ html, body {
 </div>
 
 <script src="humanity-engine.js"></script>
+<script src="humanity-llm-layer.js"></script>
 <script>
 /* ============== TERMINAL ============== */
 const logEl = document.getElementById('terminal-log');
@@ -304,6 +305,14 @@ const bootLines = [
 function printLine(text, cb) {
   logEl.textContent += text + "\n";
   if (cb) cb();
+}
+
+// reescribe la ultima linea impresa en vez de agregar una nueva
+// (usado por la barra de progreso de descarga del modulo de lenguaje)
+function replaceLastLine(text) {
+  const content = logEl.textContent;
+  const idx = content.lastIndexOf('\n', content.length - 2);
+  logEl.textContent = content.slice(0, idx + 1) + text + "\n";
 }
 
 function bootSequence(lines, i, done) {
@@ -350,16 +359,72 @@ async function enterHumanity() {
 function exitHumanity() {
   printLines(Humanity.exit());
   terminalMode = 'normal';
+  pendingLLMConfirm = false;
   updatePrompt();
 }
 
-function runCommand(cmd) {
+/* ============== HUMANITY LLM LAYER (Fase 2, opcional) ============== */
+let pendingLLMConfirm = false;
+
+function startLLMActivation() {
+  if (typeof HumanityLLM === 'undefined') {
+    printLine("Modulo de lenguaje no disponible en este build.");
+    printLine("");
+    return;
+  }
+  if (HumanityLLM.isAvailable()) {
+    printLine("El modulo de lenguaje ya esta activo.");
+    printLine("");
+    return;
+  }
+  printLine("Modulo de lenguaje detectado en el archivo original.");
+  printLine("Tamaño aproximado de descarga: " + HumanityLLM.CONFIG.approxSizeLabel + " (se cachea en el navegador, solo una vez).");
+  printLine('Confirmar descarga y activacion? (si/no)');
+  printLine("");
+  pendingLLMConfirm = true;
+}
+
+async function handleLLMConfirm(cmd) {
+  pendingLLMConfirm = false;
+  const normalized = cmd.trim().toLowerCase();
+  if (normalized !== 'si' && normalized !== 'sí') {
+    printLine("Activacion cancelada. HUMANITY sigue en modo archivo basico.");
+    printLine("");
+    return;
+  }
+
+  printLine("RECUPERANDO MODULO DE LENGUAJE... 0%");
+  const result = await HumanityLLM.activate((pct, file) => {
+    replaceLastLine("RECUPERANDO MODULO DE LENGUAJE... " + pct + "%" + (file ? "  (" + file + ")" : ""));
+  });
+
+  if (result.ok) {
+    replaceLastLine("RECUPERANDO MODULO DE LENGUAJE... 100%");
+    Humanity.setLLMLayer(HumanityLLM);
+    printLine("MODULO DE LENGUAJE RECUPERADO (" + (result.backend || 'wasm').toUpperCase() + ").");
+    printLine("Las respuestas de HUMANITY pueden sonar distintas ahora, pero los datos siguen siendo los mismos.");
+    printLine("");
+  } else {
+    printLine("No se pudo recuperar el modulo de lenguaje. HUMANITY sigue funcionando con lo que tenia.");
+    printLine("");
+  }
+}
+
+async function runCommand(cmd) {
   if (terminalMode === 'humanity') {
     if (cmd === "salir" || cmd === "exit") {
       exitHumanity();
       return;
     }
-    printLines(Humanity.handleInput(cmd));
+    if (pendingLLMConfirm) {
+      await handleLLMConfirm(cmd);
+      return;
+    }
+    if (/^activar\s+m[oó]dulo$/i.test(cmd)) {
+      startLLMActivation();
+      return;
+    }
+    printLines(await Humanity.handleInput(cmd));
     printLine("");
     return;
   }

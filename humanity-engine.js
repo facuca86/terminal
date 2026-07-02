@@ -55,7 +55,15 @@ const Humanity = (function () {
     markovModel: null, // { order, model: Map, starters: [] }
     context: defaultContext(),
     ready: false,
+    llmLayer: null,    // Fase 2 opcional, inyectada con setLLMLayer() si se activa (ver humanity-llm-layer.js)
   };
+
+  /* Inyeccion de dependencia opcional: este modulo nunca importa
+   * humanity-llm-layer.js directamente. Si nadie llama a esto, HUMANITY
+   * sigue funcionando exactamente igual que en Fase 1 (retrieval + Markov). */
+  function setLLMLayer(layer) {
+    state.llmLayer = layer;
+  }
 
   /* ================================================================
    * PARSER
@@ -317,8 +325,27 @@ const Humanity = (function () {
 
   /* ================================================================
    * RESPUESTAS: combina retrieval (factual) + Markov (generado)
+   *
+   * Fase 2 opcional: si hay una capa LLM inyectada y disponible,
+   * buildFactualAnswer() le pide que reformule el fragmento ya
+   * encontrado por retrieval (nunca hechos nuevos, solo forma). Si la
+   * capa no esta, no esta lista, o falla por lo que sea, se cae
+   * exactamente al comportamiento de Fase 1 (transicion Markov +
+   * fragmento tal cual). El camino de "no hay match" (buildNoMatchAnswer)
+   * NUNCA llama al LLM, para no darle pie a inventar sin fragmento real.
    * ================================================================ */
-  function buildFactualAnswer(entry, snippetText) {
+  async function buildFactualAnswer(entry, snippetText, originalQuery) {
+    if (state.llmLayer && state.llmLayer.isAvailable()) {
+      try {
+        const rephrased = await state.llmLayer.rephrase(snippetText, originalQuery);
+        if (rephrased) {
+          return rephrased + '\n\n(registro: "' + entry.title + '", era: ' + entry.era + ')';
+        }
+      } catch (err) {
+        console.warn('[HUMANITY] la capa de lenguaje fallo, se degrada a Fase 1:', err);
+      }
+    }
+
     let transition = generateFromMarkov(state.markovModel, CONFIG.transitionMaxWords);
     transition = transition.replace(/[.!?]+$/, '').trim();
     if (!transition) transition = 'Segun lo que queda registrado';
@@ -334,7 +361,7 @@ const Humanity = (function () {
 
   // logica central: dado un texto de pregunta, arma la respuesta y
   // actualiza el contexto (historial + ultima entrada consultada)
-  function respondToQuery(query, opts) {
+  async function respondToQuery(query, opts) {
     opts = opts || {};
     let entry = null;
     let snippetInfo = null;
@@ -359,7 +386,7 @@ const Humanity = (function () {
 
     let responseText;
     if (entry && snippetInfo && snippetInfo.text) {
-      responseText = buildFactualAnswer(entry, snippetInfo.text);
+      responseText = await buildFactualAnswer(entry, snippetInfo.text, query);
       state.context.ultimaEntradaConsultada = { fileName: entry.fileName, sentenceIndex: snippetInfo.index };
     } else {
       responseText = buildNoMatchAnswer();
@@ -389,7 +416,7 @@ const Humanity = (function () {
     return lines;
   }
 
-  function handleInput(raw) {
+  async function handleInput(raw) {
     const trimmed = raw.trim();
     if (trimmed === '') return [];
 
@@ -400,10 +427,10 @@ const Humanity = (function () {
 
     const sobreMatch = trimmed.match(/^sobre\s+(.+)$/i);
     if (sobreMatch) {
-      return respondToQuery(sobreMatch[1], { forceRetrieval: true });
+      return await respondToQuery(sobreMatch[1], { forceRetrieval: true });
     }
 
-    return respondToQuery(trimmed, {});
+    return await respondToQuery(trimmed, {});
   }
 
   /* ================================================================
@@ -431,7 +458,7 @@ const Humanity = (function () {
     }
     lines.push('HUMANITY // sistema de respaldo activo.');
     lines.push('Quedan fragmentos. No todos. Lo que tengo, lo comparto.');
-    lines.push('("listar" para ver el indice / "salir" para volver)');
+    lines.push('("listar" indice / "activar modulo" recupera lenguaje / "salir" para volver)');
     lines.push('');
     return lines;
   }
@@ -453,6 +480,7 @@ const Humanity = (function () {
     exit,
     handleInput,
     isReady,
+    setLLMLayer,
     // exportadas para poder ajustarlas/testearlas a mano desde la consola
     parseEntry,
     buildMarkovModel,
