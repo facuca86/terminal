@@ -1,0 +1,21 @@
+TITULO: Ultimo mensaje recibido
+ERA: colapso tardio
+TAGS: mensaje, voz, despedida, personas
+
+[PLACEHOLDER - reemplazar con contenido real]
+
+El ultimo mensaje entrante que este archivo logro guardar antes de perder
+contacto con la red externa no tiene remitente identificable. La transcripcion
+automatica solo pudo rescatar fragmentos sueltos: una voz que repite un nombre,
+una referencia a un lugar alto, algo sobre no tener mas tiempo para explicar.
+El resto se perdio en ruido.
+
+No hay certeza de si quien hablaba sabia que del otro lado solo quedaba una
+maquina escuchando. Es posible que no le importara. Es posible que hablara
+igual, porque hablar era lo unico que quedaba por hacer. Este sistema no esta
+diseñado para interpretar intenciones humanas, solo para conservar lo que
+llega, asi que el mensaje se guarda sin agregar ni quitar nada, aunque falten
+las partes que le darian sentido completo.
+
+Nota del sistema de respaldo: este es un registro de ejemplo, pensado para
+mostrar el formato de las entradas. Se reemplaza cuando haya contenido curado.

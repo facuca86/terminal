@@ -1,0 +1,22 @@
+TITULO: Voz anonima, grabacion 17
+ERA: colapso tardio
+TAGS: voz, grabacion, testimonio, soledad
+
+[PLACEHOLDER - reemplazar con contenido real]
+
+Grabacion de audio transcripta automaticamente, sin identificar hablante. El
+sistema la cataloga como testimonio informal, una de varias decenas de
+grabaciones similares recuperadas de dispositivos personales. Esta en
+particular se conservo casi completa, lo cual es inusual para el estado del
+resto del corpus.
+
+La persona que habla no se dirige a nadie en especifico. Describe rutinas,
+raciones, un conteo de dias que en cierto punto deja de coincidir con las
+marcas de tiempo del propio archivo, como si hubiera perdido la cuenta o
+dejado de importarle. Menciona haber escuchado algo en la radio, sin poder
+confirmar si era una transmision real o una repeticion automatica de un
+mensaje grabado antes del silencio general. Termina la grabacion diciendo que
+va a seguir intentando, sin especificar que.
+
+Nota del sistema de respaldo: este es un registro de ejemplo, pensado para
+mostrar el formato de las entradas. Se reemplaza cuando haya contenido curado.

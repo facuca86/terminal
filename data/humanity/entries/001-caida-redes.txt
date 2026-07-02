@@ -1,0 +1,23 @@
+TITULO: La caida de las redes
+ERA: colapso temprano
+TAGS: redes, comunicaciones, apagon, ciudades
+
+[PLACEHOLDER - reemplazar con contenido real]
+
+Fragmento recuperado de un nodo de respaldo regional. La fecha exacta se perdio,
+pero las marcas de tiempo internas ubican el evento en los primeros meses del
+colapso. Las redes troncales dejaron de responder casi al mismo tiempo en
+distintos continentes, lo cual sugiere que no fue un fallo aislado sino algo
+coordinado, o al menos simultaneo. Las ciudades que dependian de los enlaces
+satelitales quedaron aisladas primero. Despues siguieron las redes terrestres.
+
+Los registros de trafico muestran un pico enorme de solicitudes justo antes del
+silencio total, como si millones de personas hubieran intentado comunicarse al
+mismo tiempo con quien fuera. No hay forma de saber si alguien del otro lado
+llego a leer esos mensajes. Este archivo guarda apenas un fragmento de esas
+transmisiones, dañado en partes, ilegible en otras. Se conserva tal como se
+encontro, sin reconstruir lo que falta, porque no hay con que rellenar los
+huecos sin inventar.
+
+Nota del sistema de respaldo: este es un registro de ejemplo, pensado para
+mostrar el formato de las entradas. Se reemplaza cuando haya contenido curado.
