@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>TETRIX-90</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: #000;
+  font-family: 'VT323', monospace;
+  overflow: hidden;
+}
+
+#crt {
+  position: relative;
+  width: 100%; height: 100vh;
+  background: #030a03;
+  display: flex; align-items: center; justify-content: center;
+  padding: 30px;
+}
+
+#screen {
+  position: relative;
+  width: 900px;
+  max-width: 95vw;
+  height: 640px;
+  max-height: 90vh;
+  background: radial-gradient(ellipse at center, #041a06 0%, #010801 100%);
+  border: 14px solid #14140f;
+  border-radius: 18px;
+  box-shadow:
+    inset 0 0 60px 10px rgba(0,0,0,0.85),
+    0 0 40px rgba(0,0,0,0.9),
+    0 0 2px #444 inset;
+  overflow: hidden;
+  color: #39ff6a;
+}
+
+#screen::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0px,
+    rgba(0,0,0,0) 1px,
+    rgba(0,0,0,0.28) 2px,
+    rgba(0,0,0,0.28) 3px
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+
+#screen::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%);
+  pointer-events: none;
+  z-index: 6;
+  animation: flicker 6s infinite;
+}
+
+@keyframes flicker {
+  0%, 96%, 100% { opacity: 1; }
+  97% { opacity: 0.85; }
+  98% { opacity: 1; }
+}
+
+#inner {
+  position: absolute; inset: 0;
+  padding: 22px 26px;
+  text-shadow: 0 0 4px #39ff6a, 0 0 10px rgba(57,255,106,0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- TERMINAL ---------- */
+#terminal-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+#terminal-log {
+  flex: 1;
+  overflow-y: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+#terminal-inputline {
+  display: flex;
+  align-items: center;
+}
+
+#prompt-label { margin-right: 8px; }
+
+#cmd-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #39ff6a;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  text-shadow: 0 0 4px #39ff6a, 0 0 10px rgba(57,255,106,0.5);
+  flex: 1;
+  caret-color: transparent;
+}
+
+.cursor-block {
+  display: inline-block;
+  width: 11px; height: 20px;
+  background: #39ff6a;
+  box-shadow: 0 0 6px #39ff6a;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: -4px;
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- GAME ---------- */
+#game-view {
+  display: none;
+  flex: 1;
+  flex-direction: row;
+  gap: 24px;
+  font-size: 20px;
+}
+
+#board-wrap {
+  border: 2px solid #1c6b34;
+  box-shadow: 0 0 12px rgba(57,255,106,0.25) inset;
+  padding: 6px;
+  background: rgba(10,40,15,0.25);
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(10, 26px);
+  grid-template-rows: repeat(20, 26px);
+  gap: 1px;
+}
+
+.cell {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  color: #0e3a1a;
+  transition: color 0.03s;
+}
+
+.cell.filled {
+  color: #29d156;
+  text-shadow: 0 0 6px #29d156;
+}
+
+.cell.active {
+  color: #b6ffcf;
+  text-shadow: 0 0 10px #baffd6, 0 0 18px #39ff6a;
+}
+
+#side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 220px;
+}
+
+.panel {
+  border: 1px solid #1c6b34;
+  padding: 8px 12px;
+}
+
+.panel-title {
+  color: #8fffb0;
+  border-bottom: 1px dashed #1c6b34;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  letter-spacing: 2px;
+}
+
+#next-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 22px);
+  grid-template-rows: repeat(4, 22px);
+  gap: 1px;
+  justify-content: center;
+}
+
+.ncell {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  color: #0e3a1a;
+}
+
+.ncell.filled {
+  color: #b6ffcf;
+  text-shadow: 0 0 8px #39ff6a;
+}
+
+#stat-line { margin: 2px 0; }
+#stat-line span { color: #b6ffcf; }
+
+#help-panel div { margin: 1px 0; opacity: 0.8; }
+
+#gameover-msg {
+  display: none;
+  font-size: 26px;
+  color: #ffb000;
+  text-shadow: 0 0 8px #ffb000;
+  margin-top: 10px;
+}
+</style>
+</head>
+<body>
+
+<div id="crt">
+  <div id="screen">
+    <div id="inner">
+
+      <div id="terminal-view">
+        <div id="terminal-log"></div>
+        <div id="terminal-inputline">
+          <span id="prompt-label">C:\TETRIX90&gt;</span>
+          <span id="typed-text"></span><span class="cursor-block"></span>
+          <input id="cmd-input" autofocus autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <div id="game-view">
+        <div id="board-wrap">
+          <div id="board"></div>
+        </div>
+        <div id="side">
+          <div class="panel">
+            <div class="panel-title">SIGUIENTE</div>
+            <div id="next-grid"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">ESTADO</div>
+            <div class="stat-line" id="stat-line">SCORE: <span id="score">0</span></div>
+            <div class="stat-line">LINEAS: <span id="lines">0</span></div>
+            <div class="stat-line">NIVEL: <span id="level">1</span></div>
+          </div>
+          <div class="panel" id="help-panel">
+            <div class="panel-title">CONTROLES</div>
+            <div>← → mover</div>
+            <div>↑ rotar</div>
+            <div>↓ bajar</div>
+            <div>ESPACIO caida</div>
+            <div>ESC salir</div>
+          </div>
+          <div id="gameover-msg">GAME OVER<br>ENTER = MENU</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============== TERMINAL ============== */
+const logEl = document.getElementById('terminal-log');
+const input = document.getElementById('cmd-input');
+const typedText = document.getElementById('typed-text');
+const terminalView = document.getElementById('terminal-view');
+const gameView = document.getElementById('game-view');
+
+const bootLines = [
+"TETRIX-90 BASIC SYSTEM  v2.13",
+"COPYRIGHT (C) 1990-1996  ARCA MICROSYSTEMS",
+"",
+"MEMORY TEST........... 640K OK",
+"DETECTING VGA ADAPTER.. FOUND",
+"LOADING KERNEL......... OK",
+"MOUNTING DRIVE C:...... OK",
+"",
+"TETRIX-90 listo.",
+"Escribi 'help' para ver los comandos disponibles.",
+""
+];
+
+function printLine(text, cb) {
+  logEl.textContent += text + "\n";
+  if (cb) cb();
+}
+
+function bootSequence(lines, i, done) {
+  if (i >= lines.length) { done(); return; }
+  printLine(lines[i]);
+  setTimeout(() => bootSequence(lines, i + 1, done), lines[i] === "" ? 60 : 90 + Math.random()*80);
+}
+
+function focusInput() { input.focus(); }
+document.addEventListener('click', focusInput);
+
+input.addEventListener('input', () => {
+  typedText.textContent = input.value;
+});
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const cmd = input.value.trim().toLowerCase();
+    printLine("C:\\TETRIX90>" + input.value);
+    input.value = "";
+    typedText.textContent = "";
+    runCommand(cmd);
+  }
+});
+
+function runCommand(cmd) {
+  switch(cmd) {
+    case "init":
+      printLine("Inicializando modulo de juego...");
+      printLine("");
+      setTimeout(startGame, 500);
+      break;
+    case "help":
+      printLine("Comandos disponibles:");
+      printLine("  init   - inicia TETRIX-90");
+      printLine("  ver    - version del sistema");
+      printLine("  dir    - lista archivos");
+      printLine("  cls    - limpia pantalla");
+      printLine("");
+      break;
+    case "ver":
+      printLine("TETRIX-90 BASIC SYSTEM v2.13");
+      printLine("");
+      break;
+    case "dir":
+      printLine(" Volumen en unidad C: TETRIX90");
+      printLine("");
+      printLine(" TETRIX  EXE       48.128  17-07-96  19:00");
+      printLine(" README  TXT        1.024  17-07-96  19:00");
+      printLine(" HISCORE DAT           64  17-07-96  19:00");
+      printLine("");
+      break;
+    case "cls":
+    case "clear":
+      logEl.textContent = "";
+      break;
+    case "":
+      break;
+    default:
+      printLine("Comando no reconocido: '" + cmd + "'. Escribi 'help'.");
+      printLine("");
+  }
+}
+
+bootSequence(bootLines, 0, focusInput);
+
+/* ============== TETRIS ============== */
+const COLS = 10, ROWS = 20;
+const boardEl = document.getElementById('board');
+const nextGridEl = document.getElementById('next-grid');
+const scoreEl = document.getElementById('score');
+const linesEl = document.getElementById('lines');
+const levelEl = document.getElementById('level');
+const gameoverMsg = document.getElementById('gameover-msg');
+
+const SHAPES = {
+  I: [[1,1,1,1]],
+  O: [[1,1],[1,1]],
+  T: [[0,1,0],[1,1,1]],
+  S: [[0,1,1],[1,1,0]],
+  Z: [[1,1,0],[0,1,1]],
+  J: [[1,0,0],[1,1,1]],
+  L: [[0,0,1],[1,1,1]]
+};
+const PIECE_KEYS = Object.keys(SHAPES);
+
+let board, current, next, score, linesCleared, level, dropInterval, dropTimer, gameActive;
+
+function emptyBoard() {
+  return Array.from({length: ROWS}, () => Array(COLS).fill(null));
+}
+
+function randomPiece() {
+  const key = PIECE_KEYS[Math.floor(Math.random() * PIECE_KEYS.length)];
+  return {
+    key,
+    letter: key,
+    matrix: SHAPES[key].map(row => row.slice()),
+    x: Math.floor(COLS / 2) - Math.ceil(SHAPES[key][0].length / 2),
+    y: 0
+  };
+}
+
+function rotateMatrix(m) {
+  const rows = m.length, cols = m[0].length;
+  const res = Array.from({length: cols}, () => Array(rows).fill(0));
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      res[x][rows - 1 - y] = m[y][x];
+    }
+  }
+  return res;
+}
+
+function collides(matrix, offX, offY) {
+  for (let y = 0; y < matrix.length; y++) {
+    for (let x = 0; x < matrix[y].length; x++) {
+      if (!matrix[y][x]) continue;
+      const bx = offX + x, by = offY + y;
+      if (bx < 0 || bx >= COLS || by >= ROWS) return true;
+      if (by >= 0 && board[by][bx]) return true;
+    }
+  }
+  return false;
+}
+
+function merge() {
+  const { matrix, x, y, letter } = current;
+  for (let r = 0; r < matrix.length; r++) {
+    for (let c = 0; c < matrix[r].length; c++) {
+      if (matrix[r][c]) {
+        const by = y + r, bx = x + c;
+        if (by >= 0) board[by][bx] = letter;
+      }
+    }
+  }
+}
+
+function clearLines() {
+  let cleared = 0;
+  for (let y = ROWS - 1; y >= 0; y--) {
+    if (board[y].every(cell => cell)) {
+      board.splice(y, 1);
+      board.unshift(Array(COLS).fill(null));
+      cleared++;
+      y++;
+    }
+  }
+  if (cleared) {
+    const points = [0, 100, 300, 500, 800][cleared] || 800;
+    score += points * level;
+    linesCleared += cleared;
+    level = 1 + Math.floor(linesCleared / 10);
+    dropInterval = Math.max(120, 700 - (level - 1) * 60);
+    scoreEl.textContent = score;
+    linesEl.textContent = linesCleared;
+    levelEl.textContent = level;
+    restartDropTimer();
+  }
+}
+
+function spawnPiece() {
+  current = next;
+  current.x = Math.floor(COLS / 2) - Math.ceil(current.matrix[0].length / 2);
+  current.y = -countLeadingEmptyRows(current.matrix);
+  next = randomPiece();
+  renderNext();
+  if (collides(current.matrix, current.x, current.y < 0 ? 0 : current.y)) {
+    endGame();
+  }
+}
+
+function countLeadingEmptyRows(matrix) {
+  let n = 0;
+  for (const row of matrix) {
+    if (row.every(v => !v)) n++; else break;
+  }
+  return n;
+}
+
+function hardDrop() {
+  while (!collides(current.matrix, current.x, current.y + 1)) {
+    current.y++;
+    score += 1;
+  }
+  lockPiece();
+}
+
+function softDrop() {
+  if (!collides(current.matrix, current.x, current.y + 1)) {
+    current.y++;
+  } else {
+    lockPiece();
+  }
+  render();
+}
+
+function lockPiece() {
+  merge();
+  clearLines();
+  spawnPiece();
+  render();
+}
+
+function moveHorizontal(dir) {
+  if (!collides(current.matrix, current.x + dir, current.y)) {
+    current.x += dir;
+    render();
+  }
+}
+
+function rotatePiece() {
+  const rotated = rotateMatrix(current.matrix);
+  const kicks = [0, -1, 1, -2, 2];
+  for (const k of kicks) {
+    if (!collides(rotated, current.x + k, current.y)) {
+      current.matrix = rotated;
+      current.x += k;
+      render();
+      return;
+    }
+  }
+}
+
+function restartDropTimer() {
+  clearInterval(dropTimer);
+  dropTimer = setInterval(() => {
+    if (!gameActive) return;
+    softDrop();
+  }, dropInterval);
+}
+
+function buildBoardCells() {
+  boardEl.innerHTML = "";
+  const cells = [];
+  for (let y = 0; y < ROWS; y++) {
+    const rowCells = [];
+    for (let x = 0; x < COLS; x++) {
+      const div = document.createElement('div');
+      div.className = 'cell';
+      div.textContent = '.';
+      boardEl.appendChild(div);
+      rowCells.push(div);
+    }
+    cells.push(rowCells);
+  }
+  return cells;
+}
+
+let boardCells;
+
+function render() {
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const cell = boardCells[y][x];
+      const val = board[y][x];
+      if (val) {
+        cell.textContent = val;
+        cell.className = 'cell filled';
+      } else {
+        cell.textContent = '.';
+        cell.className = 'cell';
+      }
+    }
+  }
+  const { matrix, x: px, y: py, letter } = current;
+  for (let r = 0; r < matrix.length; r++) {
+    for (let c = 0; c < matrix[r].length; c++) {
+      if (matrix[r][c]) {
+        const by = py + r, bx = px + c;
+        if (by >= 0 && by < ROWS && bx >= 0 && bx < COLS) {
+          const cell = boardCells[by][bx];
+          cell.textContent = letter;
+          cell.className = 'cell active';
+        }
+      }
+    }
+  }
+}
+
+function renderNext() {
+  nextGridEl.innerHTML = "";
+  const grid = Array.from({length: 4}, () => Array(4).fill(0));
+  const m = next.matrix;
+  for (let r = 0; r < m.length; r++) {
+    for (let c = 0; c < m[r].length; c++) {
+      if (m[r][c]) grid[r][c] = next.letter;
+    }
+  }
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const div = document.createElement('div');
+      div.className = 'ncell' + (grid[r][c] ? ' filled' : '');
+      div.textContent = grid[r][c] || '';
+      nextGridEl.appendChild(div);
+    }
+  }
+}
+
+function endGame() {
+  gameActive = false;
+  clearInterval(dropTimer);
+  gameoverMsg.style.display = 'block';
+}
+
+function startGame() {
+  terminalView.style.display = 'none';
+  gameView.style.display = 'flex';
+  gameoverMsg.style.display = 'none';
+
+  board = emptyBoard();
+  boardCells = buildBoardCells();
+  score = 0; linesCleared = 0; level = 1;
+  dropInterval = 700;
+  scoreEl.textContent = 0;
+  linesEl.textContent = 0;
+  levelEl.textContent = 1;
+
+  next = randomPiece();
+  spawnPiece();
+  render();
+  gameActive = true;
+  restartDropTimer();
+}
+
+function backToTerminal() {
+  clearInterval(dropTimer);
+  gameActive = false;
+  gameView.style.display = 'none';
+  terminalView.style.display = 'flex';
+  printLine("");
+  printLine("Sesion de TETRIX-90 finalizada. Score final: " + (score || 0));
+  printLine("");
+  focusInput();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!gameActive) {
+    if (gameoverMsg.style.display === 'block' && e.key === 'Enter') {
+      backToTerminal();
+    }
+    return;
+  }
+  switch (e.key) {
+    case 'ArrowLeft': e.preventDefault(); moveHorizontal(-1); break;
+    case 'ArrowRight': e.preventDefault(); moveHorizontal(1); break;
+    case 'ArrowUp': e.preventDefault(); rotatePiece(); break;
+    case 'ArrowDown': e.preventDefault(); softDrop(); break;
+    case ' ': e.preventDefault(); hardDrop(); render(); break;
+    case 'Escape': e.preventDefault(); endGame(); break;
+  }
+});
+</script>
+</body>
+</html>
