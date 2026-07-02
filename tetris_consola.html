@@ -265,6 +265,7 @@ html, body {
   </div>
 </div>
 
+<script src="humanity-engine.js"></script>
 <script>
 /* ============== TERMINAL ============== */
 const logEl = document.getElementById('terminal-log');
@@ -272,6 +273,19 @@ const input = document.getElementById('cmd-input');
 const typedText = document.getElementById('typed-text');
 const terminalView = document.getElementById('terminal-view');
 const gameView = document.getElementById('game-view');
+const promptLabelEl = document.getElementById('prompt-label');
+
+// modo de la terminal: 'normal' (TETRIX-90) o 'humanity' (archivo HUMANITY)
+let terminalMode = 'normal';
+const PROMPTS = { normal: 'C:\\TETRIX90>', humanity: 'HUMANITY>' };
+
+function updatePrompt() {
+  promptLabelEl.textContent = PROMPTS[terminalMode];
+}
+
+function printLines(lines) {
+  lines.forEach((line) => printLine(line));
+}
 
 const bootLines = [
 "TETRIX-90 BASIC SYSTEM  v2.13",
@@ -308,26 +322,66 @@ input.addEventListener('input', () => {
 input.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     const cmd = input.value.trim().toLowerCase();
-    printLine("C:\\TETRIX90>" + input.value);
+    printLine(PROMPTS[terminalMode] + input.value);
     input.value = "";
     typedText.textContent = "";
     runCommand(cmd);
   }
 });
 
+/* ============== HUMANITY (modulo de archivo) ============== */
+async function enterHumanity() {
+  if (!Humanity.isReady()) {
+    printLine("Conectando con archivo HUMANITY...");
+    try {
+      await Humanity.init();
+    } catch (err) {
+      printLine("No se pudo establecer conexion con HUMANITY.");
+      printLine("");
+      console.error('[HUMANITY]', err);
+      return;
+    }
+  }
+  terminalMode = 'humanity';
+  updatePrompt();
+  printLines(Humanity.enter());
+}
+
+function exitHumanity() {
+  printLines(Humanity.exit());
+  terminalMode = 'normal';
+  updatePrompt();
+}
+
 function runCommand(cmd) {
+  if (terminalMode === 'humanity') {
+    if (cmd === "salir" || cmd === "exit") {
+      exitHumanity();
+      return;
+    }
+    printLines(Humanity.handleInput(cmd));
+    printLine("");
+    return;
+  }
+
   switch(cmd) {
     case "init":
       printLine("Inicializando modulo de juego...");
       printLine("");
       setTimeout(startGame, 500);
       break;
+    case "humanity":
+    case "archivo":
+    case "recordar":
+      enterHumanity();
+      break;
     case "help":
       printLine("Comandos disponibles:");
-      printLine("  init   - inicia TETRIX-90");
-      printLine("  ver    - version del sistema");
-      printLine("  dir    - lista archivos");
-      printLine("  cls    - limpia pantalla");
+      printLine("  init     - inicia TETRIX-90");
+      printLine("  humanity - accede al archivo de respaldo HUMANITY (alias: archivo, recordar)");
+      printLine("  ver      - version del sistema");
+      printLine("  dir      - lista archivos");
+      printLine("  cls      - limpia pantalla");
       printLine("");
       break;
     case "ver":

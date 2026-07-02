@@ -1,0 +1,22 @@
+TITULO: Censo final registrado
+ERA: post-colapso
+TAGS: censo, numeros, poblacion, silencio
+
+[PLACEHOLDER - reemplazar con contenido real]
+
+Ultima actualizacion de un sistema de censo automatizado que este archivo
+alcanzo a sincronizar antes de perder el enlace con sus fuentes. Los numeros
+que muestra no deben tomarse como definitivos: el metodo de conteo dependia de
+señales activas de dispositivos personales, y esas señales fueron
+desapareciendo de forma desigual, mas rapido en unas regiones que en otras.
+
+Lo que se conserva no es tanto un numero final sino una curva descendente, con
+huecos donde el sistema de origen dejo de reportar por completo. En algunas
+zonas la caida es gradual. En otras es un corte abrupto de un dia para el
+otro, sin transicion, lo cual sugiere una perdida de infraestructura mas que
+una perdida de personas en si. Este archivo no tiene forma de distinguir entre
+ambos casos con los datos que le quedaron, y prefiere decirlo asi antes que
+inventar una certeza que no tiene.
+
+Nota del sistema de respaldo: este es un registro de ejemplo, pensado para
+mostrar el formato de las entradas. Se reemplaza cuando haya contenido curado.

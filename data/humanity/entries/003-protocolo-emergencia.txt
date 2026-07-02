@@ -1,0 +1,22 @@
+TITULO: Protocolo de emergencia
+ERA: colapso temprano
+TAGS: protocolo, gobierno, emergencia, evacuacion
+
+[PLACEHOLDER - reemplazar con contenido real]
+
+Copia parcial de un documento administrativo. El encabezado original se perdio,
+pero el contenido coincide con los protocolos de emergencia que circulaban en
+los primeros dias, cuando todavia se pensaba que la situacion era temporal.
+Enumera puntos de reunion, prioridades de evacuacion, listas de recursos
+criticos. Nada de esto menciona lo que realmente estaba pasando, solo como
+reaccionar ante algo que en ese momento todavia no tenia nombre.
+
+Llama la atencion la revision seis, tachada y corregida a mano, donde alguien
+agrego una linea que no estaba en las versiones anteriores: "si nadie responde
+en el punto de encuentro, seguir moviendose". Esa frase no aparece en ningun
+otro fragmento conservado por este archivo, pero se repite, con variaciones,
+en otros documentos de la misma epoca. Parece haber sido una idea que se
+propago de boca en boca mas que por canales oficiales.
+
+Nota del sistema de respaldo: este es un registro de ejemplo, pensado para
+mostrar el formato de las entradas. Se reemplaza cuando haya contenido curado.
